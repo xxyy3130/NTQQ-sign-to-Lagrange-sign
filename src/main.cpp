@@ -9,7 +9,7 @@
 void init()
 {
 #if defined(_WIN_PLATFORM_)
-    std::string version = "9.9.12-25300";
+    std::string version = "9.9.20-37051";
     try
     {
         TCHAR pathm[MAX_PATH];
@@ -95,26 +95,42 @@ void init()
     std::thread sign_init([version, ip, port]
                           {
         printf("Start Init sign\n");
+        printf("Using version: %s\n", version.c_str());
+        printf("Server will listen on %s:%d\n", ip.c_str(), port);
         for (int i = 0; i < 10; i++)
         {
             try
             {
+                printf("Attempt %d/10 to initialize...\n", i + 1);
                 if (Sign::Init(version))
                 {
+                    printf("Sign initialized successfully!\n");
                     printf("Start Init server\n");
                     Server server;
                     server.Init();
+                    printf("Server initialized, starting to listen...\n");
                     if (!server.Run(ip, port))
                         printf("Server run failed\n");
+                    else
+                        printf("Server running on %s:%d\n", ip.c_str(), port);
                     return;
+                }
+                else
+                {
+                    printf("Sign::Init returned false\n");
                 }
             }
             catch (const std::exception &e)
             {
                 printf("Init failed: %s\n", e.what());
             }
+            catch (...)
+            {
+                printf("Init failed: Unknown error\n");
+            }
             std::this_thread::sleep_for(std::chrono::seconds(1));
-        } });
+        }
+        printf("Failed to initialize after 10 attempts\n"); });
     sign_init.detach();
 }
 
