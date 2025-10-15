@@ -57,6 +57,7 @@ void init()
 #endif
     std::string ip = "0.0.0.0";
     int port = 8080;
+    uint64_t customOffset = 0;  // 自定义偏移值
 
     std::string default_config = R"({"ip":"0.0.0.0","port":8080})";
 
@@ -91,8 +92,14 @@ void init()
         port = doc["port"].GetInt();
     if (doc.HasMember("version") && doc["version"].IsString())
         version = doc["version"].GetString();
+    if (doc.HasMember("offset") && doc["offset"].IsString())
+    {
+        std::string offsetStr = doc["offset"].GetString();
+        customOffset = std::stoull(offsetStr, nullptr, 16);
+        printf("Custom offset from config: 0x%llx\n", customOffset);
+    }
 
-    std::thread sign_init([version, ip, port]
+    std::thread sign_init([version, ip, port, customOffset]
                           {
         printf("Start Init sign\n");
         printf("Using version: %s\n", version.c_str());
@@ -102,7 +109,7 @@ void init()
             try
             {
                 printf("Attempt %d/10 to initialize...\n", i + 1);
-                if (Sign::Init(version))
+                if (Sign::Init(version, customOffset))
                 {
                     printf("Sign initialized successfully!\n");
                     printf("Start Init server\n");

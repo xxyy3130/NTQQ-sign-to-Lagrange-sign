@@ -83,14 +83,29 @@ std::string Bin2Hex(const uint8_t *ptr, size_t length)
 	return str;
 }
 
-bool Sign::Init(const std::string &version)
+bool Sign::Init(const std::string &version, uint64_t customOffset)
 {
 	uint64_t HookAddress = 0;
 #if defined(_WIN_PLATFORM_)
 	HMODULE wrapperModule = GetModuleHandleW(L"wrapper.node");
 	if (wrapperModule == NULL)
 		throw std::runtime_error("Can't find wrapper.node module");
-	HookAddress = reinterpret_cast<uint64_t>(wrapperModule) + addrMap[version];
+	
+	// 如果提供了自定义偏移值，优先使用
+	if (customOffset != 0)
+	{
+		HookAddress = reinterpret_cast<uint64_t>(wrapperModule) + customOffset;
+		printf("Using custom offset: 0x%llx\n", customOffset);
+	}
+	else if (addrMap.find(version) != addrMap.end())
+	{
+		HookAddress = reinterpret_cast<uint64_t>(wrapperModule) + addrMap[version];
+	}
+	else
+	{
+		printf("Version %s not found in addrMap, please specify offset in sign.json\n", version.c_str());
+		throw std::runtime_error("Unsupported version");
+	}
 	printf("HookAddress: %llx\n", HookAddress);
 #elif defined(_MAC_PLATFORM_)
 	auto pmap = hak::get_maps();
