@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <cinttypes>
 
 void init()
 {
@@ -96,7 +97,7 @@ void init()
     {
         std::string offsetStr = doc["offset"].GetString();
         customOffset = std::stoull(offsetStr, nullptr, 16);
-        printf("Custom offset from config: 0x%llx\n", customOffset);
+        printf("Custom offset from config: 0x%" PRIx64 "\n", customOffset);
     }
 
     std::thread sign_init([version, ip, port, customOffset]

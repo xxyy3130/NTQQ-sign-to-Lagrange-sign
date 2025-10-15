@@ -4,6 +4,7 @@
 #include <vector>
 #include <thread>
 #include <stdexcept>
+#include <cinttypes>
 
 #if defined(_WIN_PLATFORM_)
 #include <Windows.h>
@@ -95,7 +96,7 @@ bool Sign::Init(const std::string &version, uint64_t customOffset)
 	if (customOffset != 0)
 	{
 		HookAddress = reinterpret_cast<uint64_t>(wrapperModule) + customOffset;
-		printf("Using custom offset: 0x%llx\n", customOffset);
+		printf("Using custom offset: 0x%" PRIx64 "\n", customOffset);
 	}
 	else if (addrMap.find(version) != addrMap.end())
 	{
@@ -106,7 +107,7 @@ bool Sign::Init(const std::string &version, uint64_t customOffset)
 		printf("Version %s not found in addrMap, please specify offset in sign.json\n", version.c_str());
 		throw std::runtime_error("Unsupported version");
 	}
-	printf("HookAddress: %llx\n", HookAddress);
+	printf("HookAddress: %" PRIx64 "\n", HookAddress);
 #elif defined(_MAC_PLATFORM_)
 	auto pmap = hak::get_maps();
 	do
@@ -114,7 +115,7 @@ bool Sign::Init(const std::string &version, uint64_t customOffset)
 		if (pmap->module_name.find("wrapper.node") != std::string::npos && pmap->offset == 0)
 		{
 			HookAddress = pmap->start() + addrMap[version];
-			printf("HookAddress: %llx\n", HookAddress);
+			printf("HookAddress: %" PRIx64 "\n", HookAddress);
 			break;
 		}
 	} while ((pmap = pmap->next()) != nullptr);
@@ -125,7 +126,7 @@ bool Sign::Init(const std::string &version, uint64_t customOffset)
 		if (pmap->module_name.find("wrapper.node") != std::string::npos && pmap->offset == 0)
 		{
 			HookAddress = pmap->start() + addrMap[version];
-			printf("HookAddress: %lx\n", HookAddress);
+			printf("HookAddress: %" PRIx64 "\n", HookAddress);
 			break;
 		}
 	} while ((pmap = pmap->next()) != nullptr);
